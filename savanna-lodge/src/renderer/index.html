@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Savanna Lodge - Management System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-base: #0f1419;
+      --bg-surface: #1a1f28;
+      --bg-hover: #252d38;
+      --border: #363d47;
+      --text-1: #e8eaed;
+      --text-2: #b0b4ba;
+      --text-3: #80858c;
+      --gold: #c9a96e;
+      --success: #52c47a;
+      --error: #f74449;
+      --warning: #f9ab00;
+      --info: #5896d4;
+      --purple: #9068d0;
+    }
+    
+    body {
+      background: var(--bg-base);
+      color: var(--text-1);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+    
+    #app {
+      display: flex;
+      height: 100vh;
+      gap: 0;
+    }
+    
+    .sidebar {
+      width: 220px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    
+    .logo {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo svg { width: 24px; height: 24px; }
+    
+    .nav {
+      padding: 10px 0;
+      flex: 1;
+    }
+    
+    .nav-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      color: var(--text-2);
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-1);
+    }
+    
+    .nav-item.active {
+      border-left-color: var(--gold);
+      background: rgba(201, 169, 110, 0.08);
+      color: var(--gold);
+    }
+    
+    .sidebar-footer {
+      padding: 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-2);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+      flex: 1;
+    }
+    
+    .btn:hover { background: var(--bg-hover); color: var(--text-1); }
+    .btn-primary { background: var(--gold); color: var(--bg-base); border: none; }
+    .btn-primary:hover { background: #d4b580; }
+    .btn-danger { background: var(--error); color: white; border: none; }
+    .btn-danger:hover { background: #ff5558; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg-hover); }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+    .btn-xs { padding: 4px 8px; font-size: 11px; }
+    
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .topbar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .topbar-left { display: flex; gap: 20px; align-items: center; }
+    .topbar-right { display: flex; gap: 12px; }
+    
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    
+    .page { display: none; }
+    .page.active { display: block; }
+    
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .page-title { font-size: 24px; font-weight: 600; }
+    .page-sub { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      transition: all 0.2s;
+    }
+    
+    .stat-card:hover { border-color: var(--gold); }
+    
+    .stat-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label { font-size: 12px; color: var(--text-3); margin-bottom: 4px; }
+    .stat-value { font-size: 22px; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+    .stat-sub { font-size: 11px; color: var(--text-3); }
+    
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+    
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 6px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    thead {
+      background: var(--bg-hover);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+    
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: var(--bg-hover); }
+    
+    .text-gold { color: var(--gold); }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .badge-green { background: rgba(82, 196, 122, 0.15); color: var(--success); }
+    .badge-blue { background: rgba(88, 150, 212, 0.15); color: var(--info); }
+    .badge-amber { background: rgba(249, 171, 0, 0.15); color: var(--warning); }
+    .badge-red { background: rgba(247, 68, 73, 0.15); color: var(--error); }
+    .badge-purple { background: rgba(144, 104, 208, 0.15); color: var(--purple); }
+    .badge-grey { background: rgba(128, 133, 140, 0.15); color: var(--text-2); }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 8px 12px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-1);
+      font-size: 13px;
+      font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.1);
+    }
+    
+    .flex {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .gap-8 { gap: 8px; }
+    
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-3);
+      font-size: 13px;
+    }
+    
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+    
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    
+    .room-pill {
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+    }
+    
+    .room-pill-num { font-size: 24px; font-weight: 600; color: var(--gold); }
+    .room-pill-label { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+    
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-overlay.hidden { display: none !important; }
+    .modal-overlay:not(.hidden) { display: flex; }
+    
+    .modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title { font-size: 16px; font-weight: 600; }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-2);
+      cursor: pointer;
+      font-size: 20px;
+    }
+    
+    .modal-body { padding: 20px; }
+    
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 16px;
+      background: var(--success);
+      color: white;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 2000;
+      transition: opacity 0.3s;
+    }
+    
+    .toast.hidden { opacity: 0; pointer-events: none; }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--error); }
+    
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 16px;
+    }
+    
+    .chart-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    
+    .chart-card.wide { grid-column: 1 / -1; }
+    
+    .pipeline-badge {
+      display: inline-block;
+      background: rgba(201, 169, 110, 0.1);
+      border: 1px solid rgba(201, 169, 110, 0.3);
+      color: var(--gold);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .chart-title { font-size: 14px; font-weight: 600; margin: 8px 0 4px; }
+    .chart-subtitle { font-size: 12px; color: var(--text-3); margin-bottom: 16px; }
+    
+    .bar-chart { display: flex; flex-direction: column; gap: 12px; }
+    
+    .bar-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .bar-label { width: 100px; font-size: 12px; font-weight: 500; color: var(--text-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--bg-hover);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .bar-fill-gold { background: var(--gold); }
+    .bar-fill-blue { background: var(--info); }
+    .bar-fill-green { background: var(--success); }
+    .bar-fill-amber { background: var(--warning); }
+    .bar-fill-purple { background: var(--purple); }
+    
+    .bar-val { width: 80px; text-align: right; font-size: 12px; font-weight: 600; color: var(--gold); }
+    
+    .bar-sub { font-size: 11px; color: var(--text-3); margin-left: 112px; }
+    
+    .col-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 200px;
+    }
+    
+    .col-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+    
+    .col-bar {
+      width: 100%;
+      background: var(--gold);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .col-bar:hover::before {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      margin-bottom: 6px;
+      z-index: 10;
+    }
+    
+    .col-label { font-size: 11px; color: var(--text-3); }
+    
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+        Savanna Lodge
+      </div>
+      <div class="nav">
+        <button class="nav-item active" data-page="dashboard">Dashboard</button>
+        <button class="nav-item" data-page="rooms">Rooms</button>
+        <button class="nav-item" data-page="guests">Guests</button>
+        <button class="nav-item" data-page="bookings">Bookings</button>
+        <button class="nav-item" data-page="reports">Reports</button>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn btn-primary" id="seedBtn">Seed DB</button>
+        <button class="btn btn-danger" id="clearBtn">Clear</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div>
+            <div style="font-size: 14px; font-weight: 600;">Savanna Lodge Management</div>
+            <div style="font-size: 11px; color: var(--text-3);">Real-time operations dashboard</div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div style="font-size: 12px; color: var(--text-3);">
+            Backend: <span style="color: var(--success);">● Connected</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard"></div>
+
+        <!-- Rooms Page -->
+        <div class="page" id="page-rooms"></div>
+
+        <!-- Guests Page -->
+        <div class="page" id="page-guests"></div>
+
+        <!-- Bookings Page -->
+        <div class="page" id="page-bookings"></div>
+
+        <!-- Reports Page -->
+        <div class="page" id="page-reports"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title"></div>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast hidden" id="toast"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
